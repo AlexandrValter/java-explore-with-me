@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.ExploreWithMe.exception.CategoryNotFoundException;
 import ru.practicum.ExploreWithMe.exception.DeleteCategoryException;
 import ru.practicum.ExploreWithMe.model.Category;
@@ -14,6 +15,7 @@ import java.util.Collection;
 
 @Service
 @Slf4j
+@Transactional(readOnly = true)
 public class CategoryServiceImpl implements CategoryService {
     private final CategoryRepository repository;
     private final EventRepository eventRepository;
@@ -25,12 +27,14 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
+    @Transactional
     public Category createCategory(Category category) {
         log.info("Добавлена новая категория: {}", category.getName());
         return repository.save(category);
     }
 
     @Override
+    @Transactional
     public Category updateCategory(Category category) {
         if (repository.findById(category.getId()).isPresent()) {
             log.info("Обновлена информация о категории id={}", category.getId());
@@ -41,6 +45,7 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
+    @Transactional
     public void deleteCategory(long catId) {
         if (repository.findById(catId).isPresent()) {
             if (eventRepository.getCountEventWithCategory(catId) == 0) {

@@ -1,6 +1,7 @@
 package ru.practicum.ExploreWithMe.service;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.ExploreWithMe.exception.NotValidDateTimeFormatException;
 import ru.practicum.ExploreWithMe.mapper.EndpointHitMapper;
 import ru.practicum.ExploreWithMe.model.EndpointHitDto;
@@ -13,6 +14,7 @@ import java.time.format.DateTimeParseException;
 import java.util.Collection;
 
 @Service
+@Transactional(readOnly = true)
 public class HitServiceImpl implements HitService {
     private final HitRepository repository;
 
@@ -21,6 +23,7 @@ public class HitServiceImpl implements HitService {
     }
 
     @Override
+    @Transactional
     public void createHit(EndpointHitDto endpointHitDto) {
         repository.save(EndpointHitMapper.toEndpointHit(endpointHitDto));
     }

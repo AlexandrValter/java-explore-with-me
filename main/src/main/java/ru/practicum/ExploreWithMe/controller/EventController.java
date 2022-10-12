@@ -23,7 +23,6 @@ public class EventController {
     }
 
     @PostMapping("/users/{userId}/events")
-    @ResponseStatus(code = HttpStatus.CREATED)
     public EventFullDto createEvent(@PathVariable long userId,
                                     @RequestBody NewEventDto newEventDto) {
         return eventService.createEvent(userId, newEventDto);

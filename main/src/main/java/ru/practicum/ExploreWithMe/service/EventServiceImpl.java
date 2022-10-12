@@ -8,6 +8,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 import ru.practicum.ExploreWithMe.exception.*;
 import ru.practicum.ExploreWithMe.mapper.EventMapper;
@@ -80,6 +81,7 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Collection<EventShortDto> getAllUserEvents(long userId, int from, int size) {
         if (userRepository.findById(userId).isPresent()) {
             int page = from / size;
@@ -97,6 +99,7 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
+    @Transactional
     public EventFullDto updateEvent(long userId, UpdateEventRequest updateEventRequest) {
         if (userRepository.findById(userId).isPresent()) {
             Event event = eventRepository.findById(updateEventRequest.getEventId()).orElseThrow(
@@ -122,12 +125,14 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public EventFullDto getEvent(long userId, long eventId) {
         log.info("Запрошено событие id={}", eventId);
         return getStats(List.of(checkUserIsOwnerEvent(userId, eventId))).get(0);
     }
 
     @Override
+    @Transactional
     public EventFullDto cancelEvent(long userId, long eventId) {
         Event event = checkUserIsOwnerEvent(userId, eventId);
         if (event.getState().equals(State.PENDING)) {
@@ -140,6 +145,7 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Collection<EventFullDto> searchEventsPrivate(EventParam param, int from, int size) {
         Query query = getQuery(param);
         query.setFirstResult(from);
@@ -149,6 +155,7 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
+    @Transactional
     public EventFullDto updateEvent(long eventId, NewEventDto newEventDto) {
         Event event = eventRepository.findById(eventId).orElseThrow(
                 () -> new EventNotFoundException(
@@ -162,6 +169,7 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
+    @Transactional
     public EventFullDto publishEvent(long eventId) {
         Event event = eventRepository.findById(eventId).orElseThrow(
                 () -> new EventNotFoundException(
@@ -179,6 +187,7 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
+    @Transactional
     public EventFullDto cancelEvent(long eventId) {
         Event event = eventRepository.findById(eventId).orElseThrow(
                 () -> new EventNotFoundException(
@@ -194,6 +203,7 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Collection<EventShortDto> searchEventsPublic(EventParam eventParam,
                                                         EndpointHitDto endpointHitDto,
                                                         int from,
@@ -230,6 +240,7 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public EventFullDto getEvent(long id, EndpointHitDto endpointHitDto) {
         Event event = eventRepository.findById(id).orElseThrow(() -> new EventNotFoundException(
                 String.format("Event with id=%s was not found.", id)));
@@ -246,6 +257,7 @@ public class EventServiceImpl implements EventService {
      *Метод заполняет значение поля views (только для опубликованных событий).
      *Заполняет количество одобренных запросов для событий.
      */
+    @Transactional(readOnly = true)
     protected List<EventFullDto> getStats(List<Event> events) {
         List<Event> publishEvents = events.stream()
                 .filter(s -> s.getState().equals(State.PUBLISHED))
@@ -298,17 +310,24 @@ public class EventServiceImpl implements EventService {
      * Метод сохраняет локацию в БД. В случае когда в БД уже есть локация с такими координатами,
      * то метод присваивает событию уде существующую локацию
      */
-    private void softSaveLocation(Event event) {
+    @Transactional
+    protected void softSaveLocation(Event event) {
         try {
             eventRepository.save(event);
         } catch (DataIntegrityViolationException e) {
-            Location location = locationRepository.findLocationByLatitudeAndLongitude(
-                    event.getLocation().getLatitude(),
-                    event.getLocation().getLongitude()
-            );
+            Location location = getLocation(event);
             event.setLocation(location);
             eventRepository.save(event);
         }
+    }
+
+    //    Метод запрашивает существующую локацию для добавления её к событию
+    @Transactional(readOnly = true)
+    protected Location getLocation(Event event) {
+        return locationRepository.findLocationByLatitudeAndLongitude(
+                event.getLocation().getLatitude(),
+                event.getLocation().getLongitude()
+        );
     }
 
     //    Метод создает предикаты в зависимости для динамического запроса в зависимости от входных данных
@@ -475,7 +494,7 @@ public class EventServiceImpl implements EventService {
 
     //    Метод добавляет информацию в сервис статистики
     private void addStat(EndpointHitDto endpointHitDto) {
-        String baseUri =  statUrl.concat("/hit");
+        String baseUri = statUrl.concat("/hit");
         HttpEntity<EndpointHitDto> request = new HttpEntity<>(endpointHitDto);
         restTemplate.postForObject(baseUri, request, EndpointHitDto.class);
     }

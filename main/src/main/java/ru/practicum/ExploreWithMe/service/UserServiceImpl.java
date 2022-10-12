@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.ExploreWithMe.exception.UserNotFoundException;
 import ru.practicum.ExploreWithMe.model.User;
 import ru.practicum.ExploreWithMe.repository.UserRepository;
@@ -14,6 +15,7 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Service
+@Transactional(readOnly = true)
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
 
@@ -22,6 +24,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public User createUser(User user) {
         log.info("Добавлен пользователь {}", user.getName());
         return userRepository.save(user);
@@ -46,6 +49,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public void deleteUser(long userId) {
         if (userRepository.findById(userId).isPresent()) {
             log.info("Удален пользователь id={}", userId);

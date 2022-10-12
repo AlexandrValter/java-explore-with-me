@@ -19,7 +19,6 @@ public class CategoryController {
     }
 
     @PostMapping("/admin/categories")
-    @ResponseStatus(code = HttpStatus.CREATED)
     public Category createCategory(@RequestBody @Valid Category category) {
         return categoryService.createCategory(category);
     }

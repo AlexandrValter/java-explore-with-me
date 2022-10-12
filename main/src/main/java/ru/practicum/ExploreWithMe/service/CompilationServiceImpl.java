@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.ExploreWithMe.exception.CompilationNotFoundException;
 import ru.practicum.ExploreWithMe.exception.CompilationUpdateException;
 import ru.practicum.ExploreWithMe.exception.EventNotFoundException;
@@ -22,6 +23,7 @@ import java.util.stream.Collectors;
 
 @Service
 @Slf4j
+@Transactional(readOnly = true)
 public class CompilationServiceImpl implements CompilationService {
     private final EventRepository eventRepository;
     private final EventServiceImpl eventService;
@@ -36,6 +38,7 @@ public class CompilationServiceImpl implements CompilationService {
     }
 
     @Override
+    @Transactional
     public CompilationDto createCompilation(NewCompilationDto newCompilationDto) {
         Set<EventShortDto> eventShortDtos = new HashSet<>();
         Set<Event> events = new HashSet<>();
@@ -54,6 +57,7 @@ public class CompilationServiceImpl implements CompilationService {
     }
 
     @Override
+    @Transactional
     public void deleteCompilation(long compId) {
         compilationRepository.findById(compId).orElseThrow(
                 () -> new CompilationNotFoundException(String.format("Compilation id=%s is not found", compId)));
@@ -62,6 +66,7 @@ public class CompilationServiceImpl implements CompilationService {
     }
 
     @Override
+    @Transactional
     public void deleteEventFromCompilation(long compId, long eventId) {
         Compilation compilation = compilationRepository.findById(compId).orElseThrow(
                 () -> new CompilationNotFoundException(String.format("Compilation id=%s is not found", compId)));
@@ -81,6 +86,7 @@ public class CompilationServiceImpl implements CompilationService {
     }
 
     @Override
+    @Transactional
     public void addEventToCompilation(long compId, long eventId) {
         Compilation compilation = compilationRepository.findById(compId).orElseThrow(
                 () -> new CompilationNotFoundException(String.format("Compilation id=%s is not found", compId)));
@@ -92,6 +98,7 @@ public class CompilationServiceImpl implements CompilationService {
     }
 
     @Override
+    @Transactional
     public void unpinCompilation(long compId) {
         Compilation compilation = compilationRepository.findById(compId).orElseThrow(
                 () -> new CompilationNotFoundException(String.format("Compilation id=%s is not found", compId)));
@@ -105,6 +112,7 @@ public class CompilationServiceImpl implements CompilationService {
     }
 
     @Override
+    @Transactional
     public void pinCompilation(long compId) {
         Compilation compilation = compilationRepository.findById(compId).orElseThrow(
                 () -> new CompilationNotFoundException(String.format("Compilation id=%s is not found", compId)));

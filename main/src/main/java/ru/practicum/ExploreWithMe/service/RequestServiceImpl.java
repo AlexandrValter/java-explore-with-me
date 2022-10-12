@@ -3,6 +3,7 @@ package ru.practicum.ExploreWithMe.service;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.ExploreWithMe.exception.*;
 import ru.practicum.ExploreWithMe.mapper.RequestMapper;
 import ru.practicum.ExploreWithMe.model.*;
@@ -18,6 +19,7 @@ import java.util.stream.Collectors;
 
 @Service
 @Slf4j
+@Transactional(readOnly = true)
 public class RequestServiceImpl implements RequestService {
     private final RequestRepository requestRepository;
     private final UserRepository userRepository;
@@ -33,6 +35,7 @@ public class RequestServiceImpl implements RequestService {
     }
 
     @Override
+    @Transactional
     public ParticipationRequestDto createRequest(long userId, long eventId) {
         User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(
                 String.format("User with id=%s was not found.", userId)));
@@ -73,6 +76,7 @@ public class RequestServiceImpl implements RequestService {
     }
 
     @Override
+    @Transactional
     public ParticipationRequestDto cancelRequests(long userId, long requestId) {
         ParticipationRequest request = requestRepository.findParticipationRequestByRequesterIdAndId(userId, requestId);
         if (request != null) {
@@ -100,6 +104,7 @@ public class RequestServiceImpl implements RequestService {
     }
 
     @Override
+    @Transactional
     public ParticipationRequestDto rejectRequests(long userId, long reqId, long eventId) {
         eventRepository.findEventByIdAndInitiatorId(eventId, userId).orElseThrow(
                 () -> new EventNotFoundException(String.format("User id=%s has not event id=%s.", userId, eventId)));
@@ -115,6 +120,7 @@ public class RequestServiceImpl implements RequestService {
     }
 
     @Override
+    @Transactional
     public ParticipationRequestDto confirmRequests(long userId, long reqId, long eventId) {
         ParticipationRequestDto result;
         Event event = eventRepository.findEventByIdAndInitiatorId(eventId, userId).orElseThrow(
