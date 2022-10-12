@@ -1,6 +1,5 @@
 package ru.practicum.ExploreWithMe.model;
 
-import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
