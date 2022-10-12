@@ -1,6 +1,5 @@
 package ru.practicum.ExploreWithMe.controller;
 
-import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.ExploreWithMe.model.EventParam;
 import ru.practicum.ExploreWithMe.model.dto.*;

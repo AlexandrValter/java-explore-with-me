@@ -1,6 +1,5 @@
 package ru.practicum.ExploreWithMe.controller;
 
-import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.ExploreWithMe.model.Category;
 import ru.practicum.ExploreWithMe.service.CategoryService;
