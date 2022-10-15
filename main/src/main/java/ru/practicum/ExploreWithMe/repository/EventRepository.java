@@ -19,4 +19,7 @@ public interface EventRepository extends JpaRepository<Event, Long>, JpaSpecific
 
     @Query(value = "select count (e.id) from Event e where e.category.id = ?1")
     int getCountEventWithCategory(long categoryId);
+
+    @Query(value = "select e from Event e order by size(e.likes) desc")
+    Page<Event> findPopularEvents(Pageable pageable);
 }

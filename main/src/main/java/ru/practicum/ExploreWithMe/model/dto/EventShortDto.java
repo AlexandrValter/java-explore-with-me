@@ -16,6 +16,7 @@ public class EventShortDto {
     private boolean paid;
     private String title;
     private int views;
+    private int likes;
 
     public EventShortDto(String annotation,
                          Category category,

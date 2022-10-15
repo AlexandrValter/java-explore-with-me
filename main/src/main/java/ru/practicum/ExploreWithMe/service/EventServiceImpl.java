@@ -253,6 +253,56 @@ public class EventServiceImpl implements EventService {
         }
     }
 
+    @Override
+    @Transactional
+    public EventFullDto addLike(long userId, long eventId) {
+        Event event = eventRepository.findById(eventId).orElseThrow(() -> new EventNotFoundException(eventId));
+        User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
+        if (event.getInitiator().getId() == userId) {
+            throw new AddLikeException(String.format("Initiator id=%s can not liked his event id=%s",
+                    userId, eventId));
+        }
+        if (event.getEventDate().isAfter(LocalDateTime.now())) {
+            throw new AddLikeException("It is impossible to evaluate events that have not yet happened");
+        }
+        ParticipationRequest request = requestRepository.findParticipationRequestByEventIdAndRequesterId(eventId, userId)
+                .orElseThrow(() -> new AddLikeException(String.format(
+                        "User id=%s did not participate in the event id=%s", userId, eventId)));
+        if (!request.getStatus().equals(Status.CONFIRMED)) {
+            throw new AddLikeException(String.format(
+                    "User id=%s did not participate in the event id=%s", userId, eventId));
+        }
+        event.getLikes().add(user);
+        log.info("Пользователь id={} поставил лайк событию id={}", userId, eventId);
+        return getStats(List.of(eventRepository.save(event))).get(0);
+    }
+
+    @Override
+    @Transactional
+    public void deleteLike(long userId, long eventId) {
+        Event event = eventRepository.findById(eventId).orElseThrow(() -> new EventNotFoundException(eventId));
+        User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
+        if (event.getLikes().contains(user)) {
+            event.getLikes().remove(user);
+            log.info("Пользователь id={} удалил лайк с события id={}", userId, eventId);
+            eventRepository.save(event);
+        } else {
+            throw new DeleteLikeException(String.format(
+                    "Can't removed a like from an event id=%s that the user is=%s hasn't rated", eventId, userId));
+        }
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public Collection<EventShortDto> getPopularEvents(int from, int size) {
+        int page = from / size;
+        Pageable pageable = PageRequest.of(page, size);
+        log.info("Запрошены популярные события");
+        return getStats(eventRepository.findPopularEvents(pageable).getContent()).stream()
+                .map(EventMapper::toEventShortDto)
+                .collect(Collectors.toList());
+    }
+
     /*
      *Метод заполняет значение поля views (только для опубликованных событий).
      *Заполняет количество одобренных запросов для событий.
@@ -281,6 +331,30 @@ public class EventServiceImpl implements EventService {
         return result;
     }
 
+    /*
+     * Метод сохраняет локацию в БД. В случае когда в БД уже есть локация с такими координатами,
+     * то метод присваивает событию уде существующую локацию
+     */
+    @Transactional
+    protected void softSaveLocation(Event event) {
+        try {
+            eventRepository.save(event);
+        } catch (DataIntegrityViolationException e) {
+            Location location = getLocation(event);
+            event.setLocation(location);
+            eventRepository.save(event);
+        }
+    }
+
+    //    Метод запрашивает существующую локацию для добавления её к событию
+    @Transactional(readOnly = true)
+    protected Location getLocation(Event event) {
+        return locationRepository.findLocationByLatitudeAndLongitude(
+                event.getLocation().getLatitude(),
+                event.getLocation().getLongitude()
+        );
+    }
+
     //    Метод для создания динамического запроса
     private Query getQuery(EventParam param) {
         CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
@@ -304,30 +378,6 @@ public class EventServiceImpl implements EventService {
             throw new RequestEventException(String.format(
                     "Sorting can be only %s or %s", EventSort.EVENT_DATE, EventSort.VIEWS));
         }
-    }
-
-    /*
-     * Метод сохраняет локацию в БД. В случае когда в БД уже есть локация с такими координатами,
-     * то метод присваивает событию уде существующую локацию
-     */
-    @Transactional
-    protected void softSaveLocation(Event event) {
-        try {
-            eventRepository.save(event);
-        } catch (DataIntegrityViolationException e) {
-            Location location = getLocation(event);
-            event.setLocation(location);
-            eventRepository.save(event);
-        }
-    }
-
-    //    Метод запрашивает существующую локацию для добавления её к событию
-    @Transactional(readOnly = true)
-    protected Location getLocation(Event event) {
-        return locationRepository.findLocationByLatitudeAndLongitude(
-                event.getLocation().getLatitude(),
-                event.getLocation().getLongitude()
-        );
     }
 
     //    Метод создает предикаты в зависимости для динамического запроса в зависимости от входных данных

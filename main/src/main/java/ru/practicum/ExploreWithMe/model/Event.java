@@ -46,6 +46,13 @@ public class Event {
     private User initiator;
     @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     private Location location;
+    @ManyToMany()
+    @JoinTable(
+            name = "ratings",
+            joinColumns = @JoinColumn(name = "event_id"),
+            inverseJoinColumns = @JoinColumn(name = "user_id")
+    )
+    private Set<User> likes;
 
     public Event(
             String annotation,

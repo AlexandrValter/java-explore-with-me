@@ -83,3 +83,16 @@ CREATE TABLE IF NOT EXISTS requests
     status       VARCHAR(50),
     UNIQUE (event_id, requester_id)
 );
+
+CREATE TABLE IF NOT EXISTS ratings
+(
+    user_id  BIGINT
+        constraint ratings_user_id
+            references users
+            ON UPDATE CASCADE ON DELETE CASCADE,
+    event_id BIGINT
+        constraint ratings_event_id
+            references events
+            ON UPDATE CASCADE ON DELETE CASCADE,
+    PRIMARY KEY (user_id, event_id)
+);
