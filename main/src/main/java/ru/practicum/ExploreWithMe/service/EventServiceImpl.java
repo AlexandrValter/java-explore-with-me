@@ -256,33 +256,32 @@ public class EventServiceImpl implements EventService {
     @Override
     @Transactional
     public EventFullDto addLike(long userId, long eventId) {
-        Event event = eventRepository.findById(eventId).orElseThrow(() -> new EventNotFoundException(
-                String.format("Event with id=%s was not found.", eventId)));
-        User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(
-                String.format("User with id=%s was not found.", userId)));
-        if (event.getInitiator().getId() != userId) {
-            if (event.getEventDate().isBefore(LocalDateTime.now())) {
-                if (requestRepository.findParticipationRequestByEventIdAndRequesterId(eventId, userId)
-                        .orElseThrow(() -> new AddLikeException(String.format(
-                                "User id=%s did not participate in the event id=%s", userId, eventId)))
-                        .getStatus().equals(Status.CONFIRMED)) {
-                    event.getLikes().add(user);
-                    log.info("Пользователь id={} поставил лайк событию id={}", userId, eventId);
-                    return getStats(List.of(eventRepository.save(event))).get(0);
-                } else throw new AddLikeException(String.format(
-                        "User id=%s did not participate in the event id=%s", userId, eventId));
-            } else throw new AddLikeException("It is impossible to evaluate events that have not yet happened");
-        } else throw new AddLikeException(String.format("Initiator id=%s can not liked his event id=%s",
-                userId, eventId));
+        Event event = eventRepository.findById(eventId).orElseThrow(() -> new EventNotFoundException(eventId));
+        User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
+        if (event.getInitiator().getId() == userId) {
+            throw new AddLikeException(String.format("Initiator id=%s can not liked his event id=%s",
+                    userId, eventId));
+        }
+        if (event.getEventDate().isAfter(LocalDateTime.now())) {
+            throw new AddLikeException("It is impossible to evaluate events that have not yet happened");
+        }
+        ParticipationRequest request = requestRepository.findParticipationRequestByEventIdAndRequesterId(eventId, userId)
+                .orElseThrow(() -> new AddLikeException(String.format(
+                        "User id=%s did not participate in the event id=%s", userId, eventId)));
+        if (!request.getStatus().equals(Status.CONFIRMED)) {
+            throw new AddLikeException(String.format(
+                    "User id=%s did not participate in the event id=%s", userId, eventId));
+        }
+        event.getLikes().add(user);
+        log.info("Пользователь id={} поставил лайк событию id={}", userId, eventId);
+        return getStats(List.of(eventRepository.save(event))).get(0);
     }
 
     @Override
     @Transactional
     public void deleteLike(long userId, long eventId) {
-        Event event = eventRepository.findById(eventId).orElseThrow(() -> new EventNotFoundException(
-                String.format("Event with id=%s was not found.", eventId)));
-        User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(
-                String.format("User with id=%s was not found.", userId)));
+        Event event = eventRepository.findById(eventId).orElseThrow(() -> new EventNotFoundException(eventId));
+        User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
         if (event.getLikes().contains(user)) {
             event.getLikes().remove(user);
             log.info("Пользователь id={} удалил лайк с события id={}", userId, eventId);
