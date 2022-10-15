@@ -12,6 +12,6 @@ https://github.com/AlexandrValter/java-explore-with-me/pull/1#issue-1403573301
 
 ### ER-диаграмма БД:
 
-![](https://github.com/AlexandrValter/java-explore-with-me/raw/develop/ExploreWithMe.png?raw=true)
+![](https://github.com/AlexandrValter/java-explore-with-me/raw/main/ExploreWithMe.png?raw=true)
 
 
