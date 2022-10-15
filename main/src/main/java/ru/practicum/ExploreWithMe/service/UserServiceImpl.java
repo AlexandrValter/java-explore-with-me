@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.ExploreWithMe.exception.UserNotFoundException;
 import ru.practicum.ExploreWithMe.model.User;
+import ru.practicum.ExploreWithMe.model.dto.UserDtoLikes;
 import ru.practicum.ExploreWithMe.repository.UserRepository;
 
 import java.util.Arrays;
@@ -57,5 +58,13 @@ public class UserServiceImpl implements UserService {
         } else {
             throw new UserNotFoundException(String.format("User with id=%s was not found.", userId));
         }
+    }
+
+    @Override
+    public Collection<UserDtoLikes> getPopularUsers(int from, int size) {
+        int page = from / size;
+        Pageable pageable = PageRequest.of(page, size);
+        log.info("Запрошены популярные инициаторы событий");
+        return userRepository.findPopularUsers(pageable).getContent();
     }
 }

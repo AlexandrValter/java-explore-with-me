@@ -117,4 +117,22 @@ public class EventController {
                         request.getRemoteAddr(),
                         LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))));
     }
+
+    @PutMapping("/users/{userId}/events/{eventId}/like")
+    public EventFullDto addLike(@PathVariable long userId,
+                                @PathVariable long eventId) {
+        return eventService.addLike(userId, eventId);
+    }
+
+    @DeleteMapping("/users/{userId}/events/{eventId}/like")
+    public void deleteLike(@PathVariable long userId,
+                           @PathVariable long eventId) {
+        eventService.deleteLike(userId, eventId);
+    }
+
+    @GetMapping("/events/popular")
+    public Collection<EventShortDto> getAllUserEvents(@RequestParam(defaultValue = "0") @PositiveOrZero int from,
+                                                      @RequestParam(defaultValue = "10") @Positive int size) {
+        return eventService.getPopularEvents(from, size);
+    }
 }

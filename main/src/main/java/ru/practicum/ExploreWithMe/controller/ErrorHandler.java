@@ -73,4 +73,14 @@ public class ErrorHandler {
     public ResponseEntity<Error> catchDeleteCategoryException(DeleteCategoryException e) {
         return new ResponseEntity<>(new Error(HttpStatus.BAD_REQUEST, e.getMessage()), HttpStatus.BAD_REQUEST);
     }
+
+    @ExceptionHandler
+    public ResponseEntity<Error> catchAddLikeException(AddLikeException e) {
+        return new ResponseEntity<>(new Error(HttpStatus.BAD_REQUEST, e.getMessage()), HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler
+    public ResponseEntity<Error> catchDeleteLikeException(DeleteLikeException e) {
+        return new ResponseEntity<>(new Error(HttpStatus.BAD_REQUEST, e.getMessage()), HttpStatus.BAD_REQUEST);
+    }
 }

@@ -27,7 +27,7 @@ public class EventMapper {
     }
 
     public static EventFullDto toEventFullDto(Event event) {
-        EventFullDto response = new EventFullDto(
+        EventFullDto eventFullDto = new EventFullDto(
                 event.getId(),
                 event.getAnnotation(),
                 event.getDescription(),
@@ -43,15 +43,18 @@ public class EventMapper {
                 LocationMapper.toLocationDto(event.getLocation())
         );
         if (event.getPublishedOn() != null) {
-            response.setPublishedOn(
+            eventFullDto.setPublishedOn(
                     event.getPublishedOn().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
             );
         }
-        return response;
+        if (event.getLikes() != null) {
+            eventFullDto.setLikes(event.getLikes().size());
+        }
+        return eventFullDto;
     }
 
     public static EventShortDto toEventShortDto(Event event) {
-        return new EventShortDto(
+        EventShortDto eventShortDto = new EventShortDto(
                 event.getAnnotation(),
                 event.getCategory(),
                 event.getEventDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
@@ -60,6 +63,10 @@ public class EventMapper {
                 event.getPaid(),
                 event.getTitle()
         );
+        if (event.getLikes() != null) {
+            eventShortDto.setLikes(event.getLikes().size());
+        }
+        return eventShortDto;
     }
 
     public static Event toEvent(UpdateEventRequest updateEventRequest) {
@@ -74,7 +81,7 @@ public class EventMapper {
     }
 
     public static EventShortDto toEventShortDto(EventFullDto eventFullDto) {
-        return new EventShortDto(
+        EventShortDto eventShortDto = new EventShortDto(
                 eventFullDto.getAnnotation(),
                 eventFullDto.getCategory(),
                 eventFullDto.getEventDate(),
@@ -84,5 +91,7 @@ public class EventMapper {
                 eventFullDto.getTitle(),
                 eventFullDto.getViews()
         );
+        eventShortDto.setLikes(eventFullDto.getLikes());
+        return eventShortDto;
     }
 }

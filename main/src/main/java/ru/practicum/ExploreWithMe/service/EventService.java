@@ -27,4 +27,10 @@ public interface EventService {
     Collection<EventShortDto> searchEventsPublic(EventParam param, EndpointHitDto endpointHitDto, int from, int size);
 
     EventFullDto getEvent(long id, EndpointHitDto endpointHitDto);
+
+    EventFullDto addLike(long userId, long eventId);
+
+    void deleteLike(long userId, long eventId);
+
+    Collection<EventShortDto> getPopularEvents(int from, int size);
 }
